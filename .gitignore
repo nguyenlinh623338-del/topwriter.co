@@ -1,0 +1,4 @@
+.ftpconfig
+vendor
+.env
+node_modules
