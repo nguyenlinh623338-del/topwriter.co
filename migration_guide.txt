@@ -1,0 +1,13 @@
+Để chuyển từ topwriter.ccz.es sang topwriter.co, bạn cần:
+1. Cập nhật .env với thông tin mới:
+APP_URL=https://topwriter.co
+GOOGLE_REDIRECT_URI=https://topwriter.co/auth/google/callback
+PYTHON_API_URL=https://api.topwriter.co
+PAYPAL_RETURN_URL=https://topwriter.co/paypal-success
+PAYPAL_CANCEL_URL=https://topwriter.co/paypal-cancel
+2. Đăng nhập vào tài khoản PayPal Developer và thêm URL mới vào danh sách Redirect URLs
+3. Đăng nhập vào tài khoản Coinbase Commerce và cập nhật Webhook và Redirect URLs
+4. Đăng nhập vào Google Cloud Console và cập nhật Authorized redirect URIs
+5. Chạy lệnh sau sau khi cập nhật:
+   php artisan config:cache
+   php artisan route:cache
