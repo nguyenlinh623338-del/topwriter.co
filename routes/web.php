@@ -12,6 +12,7 @@ use App\Http\Controllers\CoinbasePaymentController;
 use App\Http\Controllers\TestApiController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\CoinbaseCreditsController;
+use App\Http\Controllers\StripeCreditsController;
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\RevisionController;
 use App\Http\Controllers\DashboardSyncController;
@@ -28,7 +29,7 @@ Route::get('/crypto/checkout', [CoinbasePaymentController::class, 'checkout'])->
 Route::get('/crypto/success', [CoinbasePaymentController::class, 'success'])->name('crypto.success');
 Route::get('/crypto/cancel', [CoinbasePaymentController::class, 'cancel'])->name('crypto.cancel');
 
-// PayPal routes for trial 
+// PayPal routes for trial
 Route::get('/paypal/checkout', [PayPalController::class, 'checkout'])->name('paypal.checkout');
 // Sử dụng đường dẫn cũ: /paypal-success
 Route::get('/paypal-success', [PayPalController::class, 'success'])->name('paypal.success');
@@ -39,20 +40,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/credits/buy', [CreditsController::class, 'checkout'])->name('credits.buy');
     Route::get('/credits/checkout', [CreditsController::class, 'checkout'])->name('credits.checkout');
     Route::get('/credits/confirm', [CreditsController::class, 'confirm'])->name('credits.confirm');
-    
+
     // PayPal routes cho credits
     Route::get('/credits/paypal/checkout', [CreditsController::class, 'processPayPal'])->name('credits.paypal.process');
     Route::get('/credits/paypal/success', [CreditsController::class, 'paypalSuccess'])->name('credits.paypal.success');
     Route::get('/credits-paypal-success', [CreditsController::class, 'paypalSuccess'])->name('credits.paypal.success.alt'); // URL thay thế
     Route::get('/credits/paypal/cancel', [CreditsController::class, 'paypalCancel'])->name('credits.paypal.cancel');
-    
+
     // Coinbase routes cho credits
     Route::get('/credits/crypto/checkout', [CoinbaseCreditsController::class, 'checkout'])->name('credits.crypto.process');
     Route::get('/credits/crypto/success', [CoinbaseCreditsController::class, 'success'])->name('credits.crypto.success');
     Route::get('/credits/crypto/cancel', [CoinbaseCreditsController::class, 'cancel'])->name('credits.crypto.cancel');
-    
+
     Route::get('/credits/success', [CreditsController::class, 'success'])->name('credits.success');
-    
+
     // Keywords routes
     Route::get('/keywords/create', [KeywordController::class, 'create'])->name('keywords.create');
     Route::post('/keywords/store', [KeywordController::class, 'store'])->name('keywords.store');

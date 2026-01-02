@@ -57,4 +57,14 @@ return [
         'credits_cancel_url' => 'https://topwriter.co/credits/paypal/cancel',
     ],
 
+    'stripe' => [
+        'public_key' => env('STRIPE_PUBLIC_KEY'),
+        'secret_key' => env('STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'return_url' => env('STRIPE_RETURN_URL', 'https://topwriter.co/credits/stripe/success'),
+        'cancel_url' => env('STRIPE_CANCEL_URL', 'https://topwriter.co/credits/stripe/cancel'),
+        'credits_return_url' => 'https://topwriter.co/credits/stripe/success',
+        'credits_cancel_url' => 'https://topwriter.co/credits/stripe/cancel',
+    ],
+
 ];
