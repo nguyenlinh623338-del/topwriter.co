@@ -27,14 +27,14 @@ class StripeCreditsController extends Controller
     {
         try {
             Log::info('Starting Stripe credits checkout', ['user_id' => Auth::id()]);
-
+            
             if (!auth()->check()) {
                 return redirect()->route('credits.checkout')->with('error', 'Please login before payment.');
             }
 
             // Amount for 30 credits: $600
             $amount = 600.00;
-
+            
             // Create Stripe checkout session
             $session = $this->stripeService->createCreditsPayment(
                 $amount,
@@ -44,7 +44,7 @@ class StripeCreditsController extends Controller
                     'package_type' => 'credits',
                 ]
             );
-
+            
             Log::info('Stripe credits session created', ['session_id' => $session->id]);
 
             // Create transaction record with fallback for missing columns
@@ -54,7 +54,7 @@ class StripeCreditsController extends Controller
                 $transaction->amount = $amount;
                 $transaction->type = 'credits';
                 $transaction->status = 'pending';
-
+                
                 // Only set these fields if columns exist (production safety)
                 if (Schema::hasColumn('transactions', 'payment_method')) {
                     $transaction->payment_method = 'stripe';
@@ -71,15 +71,15 @@ class StripeCreditsController extends Controller
                 if (Schema::hasColumn('transactions', 'payment_transaction_id')) {
                     $transaction->payment_transaction_id = $session->id;
                 }
-
+                
                 $transaction->save();
-
+                
             } catch (Exception $e) {
                 Log::error('Failed to create Stripe transaction record', [
                     'error' => $e->getMessage(),
                     'session_id' => $session->id
                 ]);
-
+                
                 // Fallback: Create minimal transaction record
                 $transaction = new Transaction([
                     'user_id' => Auth::id(),
@@ -93,7 +93,7 @@ class StripeCreditsController extends Controller
             // Save transaction ID to session
             session(['stripe_credits_transaction_id' => $transaction->id]);
             session(['stripe_session_id' => $session->id]);
-
+            
             Log::info('Saved Stripe credits transaction to session', [
                 'transaction_id' => $transaction->id,
                 'session_id' => $session->id
@@ -102,7 +102,7 @@ class StripeCreditsController extends Controller
             // Redirect to Stripe checkout
             Log::info('Redirecting to Stripe checkout page', ['url' => $session->url]);
             return redirect()->away($session->url);
-
+            
         } catch (Exception $e) {
             Log::error('Stripe credits checkout failed', [
                 'message' => $e->getMessage(),
@@ -121,14 +121,14 @@ class StripeCreditsController extends Controller
         try {
             $sessionId = $request->query('session_id');
             Log::info('Stripe credits success callback received', ['session_id' => $sessionId]);
-
+            
             if (!$sessionId) {
                 return redirect()->route('credits.checkout')->with('error', 'Payment session not found.');
             }
 
             // Retrieve session from Stripe to verify payment
             $session = $this->stripeService->getSession($sessionId);
-
+            
             if ($session->payment_status !== 'paid') {
                 Log::warning('Stripe payment not completed', [
                     'session_id' => $sessionId,
@@ -141,11 +141,11 @@ class StripeCreditsController extends Controller
             $transactionId = session('stripe_credits_transaction_id');
             if ($transactionId) {
                 $transaction = Transaction::find($transactionId);
-
+                
                 if ($transaction) {
                     // Update transaction status with column checks
                     $updateData = ['status' => 'completed'];
-
+                    
                     if (Schema::hasColumn('transactions', 'payment_status')) {
                         $updateData['payment_status'] = 'completed';
                     }
@@ -155,9 +155,9 @@ class StripeCreditsController extends Controller
                     if (Schema::hasColumn('transactions', 'payment_completed_at')) {
                         $updateData['payment_completed_at'] = now();
                     }
-
+                    
                     $transaction->update($updateData);
-
+                    
                     Log::info('Stripe credits transaction updated', [
                         'transaction_id' => $transactionId,
                         'update_data' => $updateData
@@ -169,7 +169,7 @@ class StripeCreditsController extends Controller
                         $oldCredits = $user->credits;
                         $user->credits += 30;
                         $user->save();
-
+                        
                         Log::info('Credits added to user account via Stripe', [
                             'user_id' => $user->id,
                             'previous_credits' => $oldCredits,
@@ -183,9 +183,9 @@ class StripeCreditsController extends Controller
             // Clear session
             session()->forget('stripe_credits_transaction_id');
             session()->forget('stripe_session_id');
-
+            
             return redirect()->route('credits.success')->with('success', '30 credits have been added to your account via Stripe!');
-
+            
         } catch (Exception $e) {
             Log::error('Stripe credits success processing failed', [
                 'message' => $e->getMessage(),
@@ -202,14 +202,14 @@ class StripeCreditsController extends Controller
     {
         try {
             Log::info('Stripe credits payment cancelled by user');
-
+            
             // Get transaction ID from session
             $transactionId = session('stripe_credits_transaction_id');
-
+            
             if ($transactionId) {
                 // Get transaction from database
                 $transaction = Transaction::find($transactionId);
-
+                
                 if ($transaction) {
                     // Update transaction status
                     $transaction->status = 'cancelled';
@@ -217,15 +217,15 @@ class StripeCreditsController extends Controller
                         $transaction->payment_status = 'cancelled';
                     }
                     $transaction->save();
-
+                    
                     Log::info('Stripe credits transaction marked as cancelled', ['transaction_id' => $transactionId]);
                 }
-
+                
                 // Clear session data
                 session()->forget('stripe_credits_transaction_id');
                 session()->forget('stripe_session_id');
             }
-
+            
             return redirect()->route('credits.checkout')->with('error', 'Payment was cancelled.');
         } catch (\Exception $e) {
             Log::error('Error handling Stripe credits cancellation', [
@@ -236,3 +236,4 @@ class StripeCreditsController extends Controller
         }
     }
 }
+

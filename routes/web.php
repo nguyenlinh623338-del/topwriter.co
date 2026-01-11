@@ -13,6 +13,7 @@ use App\Http\Controllers\TestApiController;
 use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\CoinbaseCreditsController;
 use App\Http\Controllers\StripeCreditsController;
+use App\Http\Controllers\StripeSubscriptionController;
 use App\Http\Controllers\KeywordController;
 use App\Http\Controllers\RevisionController;
 use App\Http\Controllers\DashboardSyncController;
@@ -35,25 +36,59 @@ Route::get('/paypal/checkout', [PayPalController::class, 'checkout'])->name('pay
 Route::get('/paypal-success', [PayPalController::class, 'success'])->name('paypal.success');
 Route::get('/paypal-cancel', [PayPalController::class, 'cancel'])->name('paypal.cancel');
 
+// Stripe subscription routes for trial
+Route::get('/stripe/subscription/create', [StripeSubscriptionController::class, 'createSubscription'])->name('stripe.subscription.create');
+Route::get('/stripe/subscription/success', [StripeSubscriptionController::class, 'subscriptionSuccess'])->name('stripe.subscription.success');
+Route::get('/stripe/subscription/cancel', [StripeSubscriptionController::class, 'subscriptionCancel'])->name('stripe.subscription.cancel');
+Route::post('/stripe/webhook', [StripeSubscriptionController::class, 'handleWebhook'])->name('stripe.webhook');
+
+// Debug route for troubleshooting (remove in production)
+if (app()->environment('local')) {
+    Route::get('/debug/stripe-subscription', function () {
+        return response()->json([
+            'user_authenticated' => auth()->check(),
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()?->email,
+            'session_data' => session()->all(),
+            'selected_plan' => session('selected_plan', 'starter'),
+            'validated_data' => session('validatedData') ? 'present' : 'missing',
+            'stripe_config' => [
+                'public_key' => config('services.stripe.public_key') ? 'set' : 'missing',
+                'secret_key' => config('services.stripe.secret_key') ? 'set' : 'missing',
+                'webhook_secret' => config('services.stripe.webhook_secret') ? 'set' : 'missing',
+            ],
+            'routes' => [
+                'success' => route('stripe.subscription.success'),
+                'cancel' => route('stripe.subscription.cancel'),
+            ],
+        ]);
+    });
+}
+
 // Credits routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/credits/buy', [CreditsController::class, 'checkout'])->name('credits.buy');
     Route::get('/credits/checkout', [CreditsController::class, 'checkout'])->name('credits.checkout');
     Route::get('/credits/confirm', [CreditsController::class, 'confirm'])->name('credits.confirm');
-
+    
     // PayPal routes cho credits
     Route::get('/credits/paypal/checkout', [CreditsController::class, 'processPayPal'])->name('credits.paypal.process');
     Route::get('/credits/paypal/success', [CreditsController::class, 'paypalSuccess'])->name('credits.paypal.success');
     Route::get('/credits-paypal-success', [CreditsController::class, 'paypalSuccess'])->name('credits.paypal.success.alt'); // URL thay thế
     Route::get('/credits/paypal/cancel', [CreditsController::class, 'paypalCancel'])->name('credits.paypal.cancel');
-
+    
     // Coinbase routes cho credits
     Route::get('/credits/crypto/checkout', [CoinbaseCreditsController::class, 'checkout'])->name('credits.crypto.process');
     Route::get('/credits/crypto/success', [CoinbaseCreditsController::class, 'success'])->name('credits.crypto.success');
     Route::get('/credits/crypto/cancel', [CoinbaseCreditsController::class, 'cancel'])->name('credits.crypto.cancel');
 
+    // Stripe routes cho credits
+    Route::get('/credits/stripe/checkout', [StripeCreditsController::class, 'checkout'])->name('credits.stripe.process');
+    Route::get('/credits/stripe/success', [StripeCreditsController::class, 'success'])->name('credits.stripe.success');
+    Route::get('/credits/stripe/cancel', [StripeCreditsController::class, 'cancel'])->name('credits.stripe.cancel');
+    
     Route::get('/credits/success', [CreditsController::class, 'success'])->name('credits.success');
-
+    
     // Keywords routes
     Route::get('/keywords/create', [KeywordController::class, 'create'])->name('keywords.create');
     Route::post('/keywords/store', [KeywordController::class, 'store'])->name('keywords.store');
@@ -92,7 +127,12 @@ Route::get('/trial-payment-options', function () {
     if (!session()->has('validatedData')) {
         return redirect()->route('try-writing')->with('error', 'No data found. Please try again.');
     }
-    return view('trial.payment_options');
+
+    $pricingService = app(\App\Services\PricingService::class);
+    $pricing = $pricingService->getFormattedPricing();
+    $selectedPlan = session('selected_plan', 'starter');
+
+    return view('trial.payment_options', compact('pricing', 'selectedPlan'));
 })->name('trial.payment.options');
 
 // Trial Success: sau khi thanh toán thành công và callback xử lý user,
@@ -117,5 +157,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__.'/auth.php';

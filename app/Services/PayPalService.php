@@ -33,7 +33,7 @@ class PayPalService
             'client_id_prefix' => substr($this->clientId, 0, 10) . '...',
         ]);
         
-        $this->accessToken = $this->getAccessToken();
+        $this->accessToken = '';//$this->getAccessToken();
     }
 
     /**

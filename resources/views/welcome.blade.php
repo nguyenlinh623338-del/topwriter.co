@@ -2457,7 +2457,7 @@ body {
                         </li>
                     </ul>
 
-                    <a href="{{ route('try-writing') }}" class="cta-button secondary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none;">Get Started</a>
+                    <a href="{{ route('try-writing', ['plan' => 'starter']) }}" class="cta-button secondary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none;">Get Started</a>
                 </div>
 
                 <!-- Package 2: Professional (Recommended) -->
@@ -2528,7 +2528,7 @@ body {
                         </li>
                     </ul>
 
-                    <a href="{{ route('try-writing') }}" class="cta-button primary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none;">Start Professional Plan</a>
+                    <a href="{{ route('try-writing', ['plan' => 'professional']) }}" class="cta-button primary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none;">Start Professional Plan</a>
                 </div>
 
                 <!-- Package 3: Enterprise -->
@@ -2587,7 +2587,7 @@ body {
                     </ul>
 
                     <div style="text-align: center;">
-                        <a href="{{ route('try-writing') }}" class="cta-button secondary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none; margin-bottom: 12px;">Get Started</a>
+                        <a href="{{ route('try-writing', ['plan' => 'enterprise']) }}" class="cta-button secondary" style="width: 100%; text-align: center; display: inline-block; text-decoration: none; margin-bottom: 12px;">Get Started</a>
                         <div style="font-size: 0.875rem; color: #666; font-style: italic; margin-top: 8px;">For hospital networks & premium practices</div>
                     </div>
                 </div>

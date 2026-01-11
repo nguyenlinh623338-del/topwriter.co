@@ -19,9 +19,21 @@ use Illuminate\Support\Facades\Queue;
 class TrialWritingController extends Controller
 {
     // 📌 Hiển thị trang thử viết
-    public function show()
+    public function show(Request $request)
     {
-        return view('try-writing');  // Đảm bảo có file `resources/views/try-writing.blade.php`
+        // Capture selected plan from welcome page pricing section
+        $selectedPlan = $request->query('plan');
+
+        if ($selectedPlan && in_array($selectedPlan, ['starter', 'professional', 'enterprise'])) {
+            session(['selected_plan' => $selectedPlan]);
+            Log::info('Plan selected from welcome page', [
+                'plan' => $selectedPlan,
+                'user_id' => auth()->id(),
+                'ip' => $request->ip()
+            ]);
+        }
+
+        return view('try-writing', compact('selectedPlan'));  // Đảm bảo có file `resources/views/try-writing.blade.php`
     }
 
     // 📌 Xử lý bài viết thử nghiệm sau khi khách điền form

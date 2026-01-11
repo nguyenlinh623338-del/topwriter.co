@@ -1,4 +1,18 @@
-.ftpconfig
-vendor
+# Node / frontend
+node_modules/
+dist/
+build/
+public/build/
+public/dist/
+
+# Minified / bundled files
+*.min.js
+*.map
+
+# Vendor / compiled assets
+vendor/
+.cache/
+
+# Environment
 .env
-node_modules
+.env.*

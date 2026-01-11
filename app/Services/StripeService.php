@@ -21,12 +21,12 @@ class StripeService
         $this->secretKey = config('services.stripe.secret_key');
         $this->publicKey = config('services.stripe.public_key');
         $this->webhookSecret = config('services.stripe.webhook_secret');
-
+        
         // Set Stripe API key
         if (!empty($this->secretKey)) {
             Stripe::setApiKey($this->secretKey);
         }
-
+        
         Log::info('Stripe Service initialized', [
             'public_key_set' => !empty($this->publicKey),
             'secret_key_set' => !empty($this->secretKey),
@@ -166,3 +166,4 @@ class StripeService
         return $this->publicKey;
     }
 }
+
